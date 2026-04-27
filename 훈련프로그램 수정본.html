@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>4주 시각 인지 훈련 통합 프로그램</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 30px; text-align: center; color: #333; }
+        h1 { margin-bottom: 30px; color: #2c3e50; }
+        .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .nav button { padding: 15px 30px; font-size: 16px; font-weight: bold; cursor: pointer; border: none; border-radius: 8px; background-color: #e0e6ed; color: #5c6ac4; transition: 0.3s; }
+        .nav button.active { background-color: #5c6ac4; color: white; box-shadow: 0 4px 6px rgba(92,106,196,0.3); }
+        .tab-content { display: none; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto; min-height: 500px; position: relative; }
+        .tab-content.active { display: block; }
+        .btn-start { padding: 12px 30px; font-size: 18px; font-weight: bold; cursor: pointer; background-color: #27ae60; color: white; border: none; border-radius: 8px; margin-top: 15px; transition: 0.2s; }
+        .btn-start:hover { background-color: #2ecc71; }
+        .btn-start:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .status-bar { font-size: 22px; font-weight: bold; margin: 20px 0; color: #34495e; }
+        .desc { font-size: 16px; color: #7f8c8d; margin-bottom: 20px; line-height: 1.5; }
+        
+        #eye-area { width: 100%; height: 400px; background-color: #ecf0f1; position: relative; overflow: hidden; border-radius: 12px; border: 2px solid #bdc3c7; margin-top: 20px; }
+        #eye-target { width: 35px; height: 35px; background-color: #e74c3c; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; transition: all 0.3s ease-out; }
+        #schulte-grid { display: grid; grid-template-columns: repeat(5, 75px); gap: 12px; justify-content: center; margin-top: 30px; }
+        .schulte-cell { width: 75px; height: 75px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: bold; background-color: white; border: 2px solid #dcdde1; cursor: pointer; border-radius: 10px; }
+        .schulte-cell.correct { background-color: #2ecc71; color: white; }
+        #mole-grid { display: grid; grid-template-columns: repeat(3, 120px); gap: 15px; justify-content: center; margin-top: 30px; }
+        .hole { width: 120px; height: 120px; background-color: #8e44ad; border-radius: 16px; position: relative; overflow: hidden; }
+        .mole { width: 90px; height: 90px; background-color: #f1c40f; border-radius: 50%; position: absolute; top: 15px; left: 15px; display: none; }
+    </style>
+</head>
+<body>
+
+    <h1>시각 인지 훈련 통합 데시보드</h1>
+
+    <div class="nav">
+        <button class="tab-btn active" onclick="openTab('tab-eye', this)">1. 안구 운동</button>
+        <button class="tab-btn" onclick="openTab('tab-schulte', this)">2. 숫자 찾기</button>
+        <button class="tab-btn" onclick="openTab('tab-mole', this)">3. 두더지 잡기</button>
+    </div>
+
+    <div id="tab-eye" class="tab-content active">
+        <h2>1. 안구 운동 (30초)</h2>
+        <div class="status-bar" id="eye-status">남은 시간: 30초</div>
+        <button class="btn-start" id="btn-eye" onclick="startEyeTraining()">훈련 시작</button>
+        <div id="eye-area"><div id="eye-target"></div></div>
+    </div>
+
+    <div id="tab-schulte" class="tab-content">
+        <h2>2. 숫자 찾기 (30초)</h2>
+        <div class="status-bar" id="schulte-status">다음에 찾을 숫자: 1 | 소요 시간: 0초 | 남은 시간: 30초</div>
+        <button class="btn-start" id="btn-schulte" onclick="startSchulte()">훈련 시작</button>
+        <div id="schulte-grid"></div>
+    </div>
+
+    <div id="tab-mole" class="tab-content">
+        <h2>3. 두더지 잡기 (30초)</h2>
+        <div class="status-bar" id="mole-status">점수: 0 | 남은 시간: 30초</div>
+        <button class="btn-start" id="btn-mole" onclick="startMole()">훈련 시작</button>
+        <div id="mole-grid">
+            <div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div>
+            <div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div>
+            <div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div>
+        </div>
+    </div>
+
+    <script>
+        let eyeMoveInt, eyeTimeInt, schulteTimeInt, moleGameInt, molePopOut;
+
+        function openTab(tabId, btn) {
+            resetAllGames();
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function resetAllGames() {
+            clearInterval(eyeMoveInt); clearInterval(eyeTimeInt);
+            document.getElementById('eye-target').style.display = 'none';
+            document.getElementById('eye-status').innerText = '남은 시간: 30초';
+            document.getElementById('btn-eye').disabled = false;
+            clearInterval(schulteTimeInt);
+            document.getElementById('schulte-grid').innerHTML = '';
+            document.getElementById('schulte-status').innerText = '다음에 찾을 숫자: 1 | 소요 시간: 0초 | 남은 시간: 30초';
+            document.getElementById('btn-schulte').disabled = false;
+            clearInterval(moleGameInt); clearTimeout(molePopOut);
+            document.querySelectorAll('.mole').forEach(m => m.style.display = 'none');
+            document.getElementById('mole-status').innerText = '점수: 0 | 남은 시간: 30초';
+            document.getElementById('btn-mole').disabled = false;
+        }
+
+        function startEyeTraining() {
+            let timeLeft = 30;
+            const target = document.getElementById('eye-target');
+            document.getElementById('btn-eye').disabled = true;
+            target.style.display = 'block';
+            eyeMoveInt = setInterval(() => {
+                const area = document.getElementById('eye-area');
+                target.style.left = Math.floor(Math.random() * (area.clientWidth - 35)) + 'px';
+                target.style.top = Math.floor(Math.random() * (area.clientHeight - 35)) + 'px';
+            }, 800);
+            eyeTimeInt = setInterval(() => {
+                timeLeft--;
+                document.getElementById('eye-status').innerText = `남은 시간: ${timeLeft}초`;
+                if (timeLeft <= 0) {
+                    clearInterval(eyeMoveInt); clearInterval(eyeTimeInt);
+                    target.style.display = 'none';
+                    alert("안구 운동 완료!");
+                }
+            }, 1000);
+        }
+
+        let currentNum = 1;
+        function startSchulte() {
+            let timeLeft = 30; let timeElapsed = 0; currentNum = 1;
+            document.getElementById('btn-schulte').disabled = true;
+            let numbers = Array.from({length: 25}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            const grid = document.getElementById('schulte-grid');
+            grid.innerHTML = '';
+            numbers.forEach(num => {
+                const div = document.createElement('div'); div.className = 'schulte-cell'; div.innerText = num;
+                div.onclick = () => {
+                    if (num === currentNum) {
+                        div.classList.add('correct'); currentNum++;
+                        if (currentNum > 25) {
+                            clearInterval(schulteTimeInt);
+                            alert(`완료! 소요 시간: ${timeElapsed}초.`);
+                        }
+                    }
+                };
+                grid.appendChild(div);
+            });
+            schulteTimeInt = setInterval(() => {
+                timeLeft--; timeElapsed++;
+                document.getElementById('schulte-status').innerText = `다음에 찾을 숫자: ${currentNum} | 소요 시간: ${timeElapsed}초 | 남은 시간: ${timeLeft}초`;
+                if (timeLeft <= 0) { clearInterval(schulteTimeInt); alert("시간 종료!"); }
+            }, 1000);
+        }
+
+        let moleScore = 0;
+        function startMole() {
+            let timeLeft = 30; moleScore = 0;
+            document.getElementById('btn-mole').disabled = true;
+            const holes = document.querySelectorAll('.hole');
+            holes.forEach(h => h.onclick = () => {
+                const m = h.querySelector('.mole');
+                if(m.style.display === 'block') { moleScore++; m.style.display = 'none'; }
+            });
+            function pop() {
+                document.querySelectorAll('.mole').forEach(m => m.style.display = 'none');
+                const r = Math.floor(Math.random() * 9);
+                holes[r].querySelector('.mole').style.display = 'block';
+                molePopOut = setTimeout(pop, 800);
+            }
+            pop();
+            moleGameInt = setInterval(() => {
+                timeLeft--;
+                document.getElementById('mole-status').innerText = `점수: ${moleScore} | 남은 시간: ${timeLeft}초`;
+                if (timeLeft <= 0) { clearInterval(moleGameInt); clearTimeout(molePopOut); alert(`종료! 점수: ${moleScore}점.`); }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
