@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>4주 시각 인지 훈련 통합 프로그램</title>
+    <title>4주 시각 인지 훈련 통합 프로그램 (수정본)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 30px; text-align: center; color: #333; }
         h1 { margin-bottom: 30px; color: #2c3e50; }
@@ -17,8 +17,8 @@
         .status-bar { font-size: 22px; font-weight: bold; margin: 20px 0; color: #34495e; }
         .desc { font-size: 16px; color: #7f8c8d; margin-bottom: 20px; line-height: 1.5; }
         
-        #eye-area { width: 100%; height: 400px; background-color: #ecf0f1; position: relative; overflow: hidden; border-radius: 12px; border: 2px solid #bdc3c7; margin-top: 20px; }
-        #eye-target { width: 35px; height: 35px; background-color: #e74c3c; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; transition: all 0.3s ease-out; }
+        #eye-area { width: 100%; height: 450px; background-color: #ecf0f1; position: relative; overflow: hidden; border-radius: 12px; border: 2px solid #bdc3c7; margin-top: 20px; }
+        #eye-target { width: 35px; height: 35px; background-color: #e74c3c; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; transition: all 1s linear; } /* H패턴을 위해 transition 시간 조정 */
         #schulte-grid { display: grid; grid-template-columns: repeat(5, 75px); gap: 12px; justify-content: center; margin-top: 30px; }
         .schulte-cell { width: 75px; height: 75px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: bold; background-color: white; border: 2px solid #dcdde1; cursor: pointer; border-radius: 10px; }
         .schulte-cell.correct { background-color: #2ecc71; color: white; }
@@ -39,6 +39,7 @@
 
     <div id="tab-eye" class="tab-content active">
         <h2>1. 안구 운동 (30초)</h2>
+        <p class="desc">0~15초: <b>H-패턴</b> 규칙 운동 (천천히)<br>15~30초: <b>무작위</b> 이동 (살짝 빠르게)</p>
         <div class="status-bar" id="eye-status">남은 시간: 30초</div>
         <button class="btn-start" id="btn-eye" onclick="startEyeTraining()">훈련 시작</button>
         <div id="eye-area"><div id="eye-target"></div></div>
@@ -75,7 +76,9 @@
 
         function resetAllGames() {
             clearInterval(eyeMoveInt); clearInterval(eyeTimeInt);
-            document.getElementById('eye-target').style.display = 'none';
+            const target = document.getElementById('eye-target');
+            target.style.display = 'none';
+            target.style.transition = 'all 1s linear';
             document.getElementById('eye-status').innerText = '남은 시간: 30초';
             document.getElementById('btn-eye').disabled = false;
             clearInterval(schulteTimeInt);
@@ -88,27 +91,55 @@
             document.getElementById('btn-mole').disabled = false;
         }
 
+        // 1. 안구 운동 로직 (H-Pattern + Random)
         function startEyeTraining() {
             let timeLeft = 30;
             const target = document.getElementById('eye-target');
+            const status = document.getElementById('eye-status');
             document.getElementById('btn-eye').disabled = true;
             target.style.display = 'block';
-            eyeMoveInt = setInterval(() => {
-                const area = document.getElementById('eye-area');
-                target.style.left = Math.floor(Math.random() * (area.clientWidth - 35)) + 'px';
-                target.style.top = Math.floor(Math.random() * (area.clientHeight - 35)) + 'px';
-            }, 800);
+
+            // H패턴 좌표 정의 (좌상, 좌하, 좌중, 우중, 우상, 우하)
+            const hPath = [
+                {l: 15, t: 15}, {l: 15, t: 85}, {l: 15, t: 50}, 
+                {l: 85, t: 50}, {l: 85, t: 15}, {l: 85, t: 85}
+            ];
+            let hIdx = 0;
+
+            function moveTarget() {
+                if (timeLeft > 15) {
+                    // Phase 1: H-Pattern (규칙적, 느리게)
+                    target.style.transition = 'all 1.5s linear';
+                    const pos = hPath[hIdx % hPath.length];
+                    target.style.left = pos.l + '%';
+                    target.style.top = pos.t + '%';
+                    hIdx++;
+                    eyeMoveInt = setTimeout(moveTarget, 1500);
+                } else {
+                    // Phase 2: Random (무작위, 살짝 빠르게)
+                    target.style.transition = 'all 0.4s ease-out';
+                    const randomX = Math.floor(Math.random() * 80) + 10;
+                    const randomY = Math.floor(Math.random() * 80) + 10;
+                    target.style.left = randomX + '%';
+                    target.style.top = randomY + '%';
+                    eyeMoveInt = setTimeout(moveTarget, 600);
+                }
+            }
+
+            moveTarget();
+
             eyeTimeInt = setInterval(() => {
                 timeLeft--;
-                document.getElementById('eye-status').innerText = `남은 시간: ${timeLeft}초`;
+                status.innerText = `남은 시간: ${timeLeft}초`;
                 if (timeLeft <= 0) {
-                    clearInterval(eyeMoveInt); clearInterval(eyeTimeInt);
+                    clearTimeout(eyeMoveInt); clearInterval(eyeTimeInt);
                     target.style.display = 'none';
                     alert("안구 운동 완료!");
                 }
             }, 1000);
         }
 
+        // 2. 숫자 찾기 로직 (30초)
         let currentNum = 1;
         function startSchulte() {
             let timeLeft = 30; let timeElapsed = 0; currentNum = 1;
@@ -136,6 +167,7 @@
             }, 1000);
         }
 
+        // 3. 두더지 잡기 로직 (30초)
         let moleScore = 0;
         function startMole() {
             let timeLeft = 30; moleScore = 0;
