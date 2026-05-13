@@ -2,99 +2,95 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>시각 인지 통합 훈련 (3세트 반복 시스템)</title>
+    <title>시각 인지 통합 훈련 (일관성 및 난이도 개선)</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; text-align: center; color: #333; }
         .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); min-height: 650px; position: relative; }
-        
         h1 { color: #2c3e50; margin-bottom: 10px; }
         .progress-info { font-size: 18px; font-weight: bold; color: #5c6ac4; margin-bottom: 20px; padding: 10px; background: #f8f9ff; border-radius: 10px; }
-        
         .screen { display: none; }
         .active { display: block; }
-
         .btn-start { padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; background: #27ae60; color: white; border: none; border-radius: 50px; transition: 0.3s; margin-top: 20px; }
         .btn-start:hover { background: #2ecc71; transform: scale(1.05); }
-
         .status-bar { font-size: 22px; font-weight: bold; margin: 20px 0; color: #34495e; }
         .desc { font-size: 16px; color: #7f8c8d; margin-bottom: 25px; line-height: 1.6; }
 
-        /* 안구 운동 전용 */
+        /* 안구 운동 */
         #eye-area { width: 100%; height: 400px; background: #ecf0f1; position: relative; overflow: hidden; border-radius: 12px; border: 2px solid #bdc3c7; }
         #eye-target { width: 35px; height: 35px; background: #e74c3c; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-        /* 숫자 찾기 전용 */
+        /* 숫자 찾기 */
         #schulte-grid { display: grid; grid-template-columns: repeat(5, 75px); gap: 12px; justify-content: center; margin-top: 20px; }
-        .schulte-cell { width: 75px; height: 75px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: bold; background: white; border: 2px solid #dcdde1; cursor: pointer; border-radius: 10px; transition: 0.1s; }
-        .schulte-cell:active { transform: scale(0.9); }
+        .schulte-cell { width: 75px; height: 75px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: bold; background: white; border: 2px solid #dcdde1; cursor: pointer; border-radius: 10px; }
         .schulte-cell.correct { background: #2ecc71; color: white; border-color: #27ae60; }
 
-        /* 두더지 잡기 전용 */
+        /* 두더지 잡기 (세트 내 난이도 상승 적용) */
         #mole-grid { display: grid; grid-template-columns: repeat(3, 120px); gap: 15px; justify-content: center; margin-top: 20px; }
         .hole { width: 120px; height: 120px; background: #8e44ad; border-radius: 16px; position: relative; overflow: hidden; cursor: crosshair; }
-        .mole { width: 90px; height: 90px; background: #f1c40f; border-radius: 50%; position: absolute; top: 15px; left: 15px; display: none; }
-
+        .mole { width: 90px; height: 90px; background: #f1c40f; border-radius: 50%; position: absolute; top: 15px; left: 15px; display: none; transform: translateY(100px); transition: transform 0.1s ease-out; }
+        .mole.up { display: block; transform: translateY(0); }
+        
         /* 결과 화면 */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
         th { background: #f8f9fa; }
-        .total-summary { font-size: 20px; font-weight: bold; margin-top: 30px; color: #e67e22; border-top: 2px solid #eee; padding-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>시각 반응 통합 훈련 시스템</h1>
+    <h1>시각 인지 통합 훈련 시스템</h1>
     <div id="progress" class="progress-info">준비 단계</div>
 
     <div id="screen-intro" class="screen active">
-        <p class="desc">지금부터 안구 운동, 숫자 찾기, 두더지 잡기 순서로<br>총 <b>3세트</b>의 훈련을 진행합니다.<br>집중력을 유지하여 모든 세트를 완료해 주세요.</p>
+        <p class="desc">지금부터 3단계 훈련을 총 <b>3세트</b> 진행합니다.<br>각 세트의 조건은 동일하며, 시간이 흐를수록 난이도가 상승합니다.</p>
         <button class="btn-start" onclick="nextStep()">전체 훈련 시작하기</button>
     </div>
 
     <div id="screen-eye" class="screen">
         <h2>1단계: 안구 운동</h2>
-        <p class="desc">빨간 원을 시선으로만 따라가세요.<br>(0~15초: H-패턴 규칙 운동 / 15~30초: 무작위 이동)</p>
         <div class="status-bar" id="eye-timer">남은 시간: 30초</div>
         <div id="eye-area"><div id="eye-target"></div></div>
     </div>
 
     <div id="screen-schulte" class="screen">
         <h2>2단계: 숫자 찾기</h2>
-        <p class="desc">1부터 25까지 숫자를 순서대로 클릭하세요.</p>
         <div class="status-bar" id="schulte-status">찾을 숫자: 1 | 시간: 0초</div>
         <div id="schulte-grid"></div>
     </div>
 
     <div id="screen-mole" class="screen">
         <h2>3단계: 두더지 잡기</h2>
-        <p class="desc">노란 원이 나타나면 빠르게 클릭하세요!</p>
+        <p class="desc">시간이 지날수록 두더지가 더 빠르게 움직입니다!</p>
         <div class="status-bar" id="mole-status">점수: 0 | 남은 시간: 30초</div>
         <div id="mole-grid">
-            <div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div>
-            <div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div>
-            <div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div><div class="hole"><div class="mole"></div></div>
+            <div class="hole"><div class="mole" onclick="whack(this)"></div></div>
+            <div class="hole"><div class="mole" onclick="whack(this)"></div></div>
+            <div class="hole"><div class="mole" onclick="whack(this)"></div></div>
+            <div class="hole"><div class="mole" onclick="whack(this)"></div></div>
+            <div class="hole"><div class="mole" onclick="whack(this)"></div></div>
+            <div class="hole"><div class="mole" onclick="whack(this)"></div></div>
+            <div class="hole"><div class="mole" onclick="whack(this)"></div></div>
+            <div class="hole"><div class="mole" onclick="whack(this)"></div></div>
+            <div class="hole"><div class="mole" onclick="whack(this)"></div></div>
         </div>
     </div>
 
     <div id="screen-result" class="screen">
-        <h2>🎉 모든 훈련 완료</h2>
-        <p class="desc">3세트 동안의 훈련 결과 리포트입니다.</p>
+        <h2>🎉 최종 결과</h2>
         <div id="result-table-area"></div>
-        <div class="total-summary" id="total-summary"></div>
         <button class="btn-start" onclick="location.reload()">처음부터 다시하기</button>
     </div>
 </div>
 
 <script>
     let currentSet = 1;
-    let currentExercise = 0; // 0: Eye, 1: Schulte, 2: Mole
-    let allResults = []; // 각 세트별 결과를 저장할 배열
-
-    const screens = ["screen-intro", "screen-eye", "screen-schulte", "screen-mole", "screen-result"];
-
-    // 전역 타이머 변수
-    let timerInt, moveInt, popInt;
+    let currentExercise = 0; 
+    let allResults = [];
+    let timerInt, moveInt, moleTimeout;
+    let moleScore = 0;
+    let moleActive = false;
+    let moleTimeLeft = 30; // 두더지 잡기 전용 시간 변수
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -102,35 +98,22 @@
     }
 
     function updateProgress() {
-        if(currentSet <= 3) {
-            const names = ["안구 운동", "숫자 찾기", "두더지 잡기"];
-            document.getElementById('progress').innerText = `Set ${currentSet}/3 - ${names[currentExercise]}`;
-        } else {
-            document.getElementById('progress').innerText = `훈련 종료`;
-        }
+        const names = ["안구 운동", "숫자 찾기", "두더지 잡기"];
+        document.getElementById('progress').innerText = currentSet <= 3 ? `Set ${currentSet}/3 - ${names[currentExercise]}` : "훈련 종료";
     }
 
     function nextStep() {
-        if (currentExercise === 0 && currentSet === 1 && !allResults.length) {
-            // 진짜 시작
-            runEyeExercise();
-        } else {
-            // 중간 단계들
-            if (currentExercise === 0) runEyeExercise();
-            else if (currentExercise === 1) runSchulteExercise();
-            else if (currentExercise === 2) runMoleExercise();
-        }
+        if (currentExercise === 0) runEyeExercise();
+        else if (currentExercise === 1) runSchulteExercise();
+        else if (currentExercise === 2) runMoleExercise();
         updateProgress();
     }
 
-    // 1. 안구 운동 로직
     function runEyeExercise() {
         showScreen('screen-eye');
         let timeLeft = 30;
         const target = document.getElementById('eye-target');
-        const timerTxt = document.getElementById('eye-timer');
         target.style.display = 'block';
-
         const hPath = [{l:15,t:15}, {l:15,t:85}, {l:15,t:50}, {l:85,t:50}, {l:85,t:15}, {l:85,t:85}];
         let hIdx = 0;
 
@@ -152,108 +135,97 @@
 
         timerInt = setInterval(() => {
             timeLeft--;
-            timerTxt.innerText = `남은 시간: ${timeLeft}초`;
+            document.getElementById('eye-timer').innerText = `남은 시간: ${timeLeft}초`;
             if (timeLeft <= 0) {
                 clearInterval(timerInt); clearTimeout(moveInt);
-                target.style.display = 'none';
-                currentExercise = 1;
-                alert("안구 운동 완료! 다음 단계로 넘어갑니다.");
-                nextStep();
+                currentExercise = 1; nextStep();
             }
         }, 1000);
     }
 
-    // 2. 숫자 찾기 로직
     function runSchulteExercise() {
         showScreen('screen-schulte');
-        let timeLeft = 30;
-        let elapsed = 0;
-        let targetNum = 1;
-        const statusTxt = document.getElementById('schulte-status');
+        let timeLeft = 30; let elapsed = 0; let targetNum = 1;
         const grid = document.getElementById('schulte-grid');
         grid.innerHTML = '';
-
         let nums = Array.from({length: 25}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
         nums.forEach(n => {
             const div = document.createElement('div');
-            div.className = 'schulte-cell';
-            div.innerText = n;
+            div.className = 'schulte-cell'; div.innerText = n;
             div.onclick = () => {
                 if (n === targetNum) {
-                    div.classList.add('correct');
-                    targetNum++;
-                    if (targetNum > 25) {
-                        finish(elapsed);
-                    }
+                    div.classList.add('correct'); targetNum++;
+                    if (targetNum > 25) finish(elapsed);
                 }
             };
             grid.appendChild(div);
         });
-
         function finish(time) {
             clearInterval(timerInt);
             saveResult('schulte', time);
-            currentExercise = 2;
-            alert(`숫자 찾기 완료! (${time}초 소요)`);
-            nextStep();
+            currentExercise = 2; nextStep();
         }
+        timerInt = setInterval(() => {
+            timeLeft--; elapsed++;
+            document.getElementById('schulte-status').innerText = `찾을 숫자: ${targetNum} | 시간: ${elapsed}초 | 남은 시간: ${timeLeft}초`;
+            if (timeLeft <= 0) { clearInterval(timerInt); saveResult('schulte', '30+'); currentExercise = 2; nextStep(); }
+        }, 1000);
+    }
+
+    function runMoleExercise() {
+        showScreen('screen-mole');
+        moleScore = 0;
+        moleTimeLeft = 30; // 30초에서 시작
+        moleActive = true;
+        document.getElementById('mole-status').innerText = `점수: 0 | 남은 시간: 30초`;
+
+        popMole(); 
 
         timerInt = setInterval(() => {
-            timeLeft--;
-            elapsed++;
-            statusTxt.innerText = `찾을 숫자: ${targetNum} | 시간: ${elapsed}초 | 남은 시간: ${timeLeft}초`;
-            if (timeLeft <= 0) {
-                clearInterval(timerInt);
-                saveResult('schulte', '실패(30초 초과)');
-                currentExercise = 2;
-                alert("시간 종료!");
-                nextStep();
+            moleTimeLeft--;
+            document.getElementById('mole-status').innerText = `점수: ${moleScore} | 남은 시간: ${moleTimeLeft}초`;
+            if (moleTimeLeft <= 0) {
+                clearInterval(timerInt); clearTimeout(moleTimeout);
+                moleActive = false;
+                document.querySelectorAll('.mole').forEach(m => m.classList.remove('up'));
+                saveResult('mole', moleScore);
+                if (currentSet < 3) { currentSet++; currentExercise = 0; nextStep(); }
+                else showFinalResult();
             }
         }, 1000);
     }
 
-    // 3. 두더지 잡기 로직
-    function runMoleExercise() {
-        showScreen('screen-mole');
-        let timeLeft = 30;
-        let score = 0;
-        const statusTxt = document.getElementById('mole-status');
-        const holes = document.querySelectorAll('.hole');
+    function popMole() {
+        if (!moleActive) return;
+        const moles = document.querySelectorAll('.mole');
+        moles.forEach(m => m.classList.remove('up'));
+
+        const randomIdx = Math.floor(Math.random() * moles.length);
+        const mole = moles[randomIdx];
+        mole.classList.add('up');
+
+        // 핵심 로직: '현재 남은 시간'에 따라 속도 결정 (세트 무관, 일관성 유지)
+        // 30초(초기)에는 1000ms 유지, 0초(종료직전)에는 400ms까지 빨라짐
+        let elapsed = 30 - moleTimeLeft;
+        let displayTime = 1000 - (elapsed * 20); // 1초당 20ms씩 빨라짐
+
+        clearTimeout(moleTimeout);
+        moleTimeout = setTimeout(() => {
+            if (mole.classList.contains('up')) {
+                mole.classList.remove('up');
+                popMole(); 
+            }
+        }, displayTime);
+    }
+
+    function whack(el) {
+        if (!el.classList.contains('up')) return;
+        moleScore++;
+        el.classList.remove('up');
+        document.getElementById('mole-status').innerText = `점수: ${moleScore} | 남은 시간: ${moleTimeLeft}초`;
         
-        holes.forEach(h => h.onclick = () => {
-            const m = h.querySelector('.mole');
-            if (m.style.display === 'block') {
-                score++;
-                m.style.display = 'none';
-                statusTxt.innerText = `점수: ${score} | 남은 시간: ${timeLeft}초`;
-            }
-        });
-
-        function pop() {
-            document.querySelectorAll('.mole').forEach(m => m.style.display = 'none');
-            const r = Math.floor(Math.random() * 9);
-            holes[r].querySelector('.mole').style.display = 'block';
-            popInt = setTimeout(pop, 800);
-        }
-        pop();
-
-        timerInt = setInterval(() => {
-            timeLeft--;
-            statusTxt.innerText = `점수: ${score} | 남은 시간: ${timeLeft}초`;
-            if (timeLeft <= 0) {
-                clearInterval(timerInt); clearTimeout(popInt);
-                saveResult('mole', score);
-                
-                if (currentSet < 3) {
-                    currentSet++;
-                    currentExercise = 0;
-                    alert(`Set ${currentSet-1} 완료! 다음 세트를 시작합니다.`);
-                    nextStep();
-                } else {
-                    showFinalResult();
-                }
-            }
-        }, 1000);
+        clearTimeout(moleTimeout);
+        setTimeout(popMole, 30); // 잡으면 거의 즉시 다음 등장
     }
 
     function saveResult(type, val) {
@@ -263,21 +235,15 @@
 
     function showFinalResult() {
         showScreen('screen-result');
-        updateProgress();
         const area = document.getElementById('result-table-area');
-        let html = `<table><tr><th>세트</th><th>안구 운동</th><th>숫자 찾기(소요시간)</th><th>두더지 잡기(점수)</th></tr>`;
-        
+        let html = `<table><tr><th>세트</th><th>안구 운동</th><th>숫자 찾기</th><th>두더지 잡기</th></tr>`;
         allResults.forEach(r => {
-            html += `<tr><td>Set ${r.set}</td><td>완료</td><td>${r.schulte}</td><td>${r.mole}</td></tr>`;
+            html += `<tr><td>Set ${r.set}</td><td>완료</td><td>${r.schulte}s</td><td>${r.mole}점</td></tr>`;
         });
         html += `</table>`;
         area.innerHTML = html;
-
-        // 평균 계산 (숫자 중 성공한 것만)
-        let totalMole = allResults.reduce((a, b) => a + (typeof b.mole === 'number' ? b.mole : 0), 0);
-        document.getElementById('total-summary').innerText = `총평: 3세트 평균 점수 ${Math.round(totalMole/3)}점 달성! 고생하셨습니다.`;
     }
 </script>
-
 </body>
+</html>
 </html>
